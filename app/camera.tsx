@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, TextInput, Alert, Image, ScrollView } from 'react-native';
-import { Camera, CameraType, requestCameraPermissionsAsync } from 'expo-camera';
+import { Camera, CameraType, CameraView, useCameraPermissions } from 'expo-camera';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import { CountryPicker } from 'react-native-country-codes-picker';
@@ -19,8 +19,7 @@ interface Photo {
 }
 
 export default function CameraScreen() {
-  const [hasPermission, setHasPermission] = useState<boolean | null>(null);
-  const [type, setType] = useState<CameraType>(CameraType.back);
+  const [type, setType] = useState<CameraType>("back");
   const [name, setName] = useState('');
   const [brewery, setBrewery] = useState('');
   const [percentage, setPercentage] = useState('');
@@ -33,17 +32,11 @@ export default function CameraScreen() {
   const [isCameraReady, setIsCameraReady] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [tempPhoto, setTempPhoto] = useState<string | null>(null);
-  const cameraRef = useRef<Camera>(null);
+  const cameraRef = useRef<CameraView>(null);
   const router = useRouter();
+  const [permission, requestPermission] = useCameraPermissions();
 
   const beerTypes = ['Lager', 'Pilsner', 'Pszeniczne', 'Ciemne', 'Porter', 'Smakowe', 'Inne', 'Bezalkoholowe', 'IPA', 'Kraftowe'];
-
-  useEffect(() => {
-    (async () => {
-      const { status } = await requestCameraPermissionsAsync();
-      setHasPermission(status === 'granted');
-    })();
-  }, []);
 
   const onCameraReady = () => {
     console.log('Camera ready');
@@ -95,15 +88,11 @@ export default function CameraScreen() {
     }
   };
 
-  if (hasPermission === null) {
-    return <View />;
-  }
-
-  if (hasPermission === false) {
+  if (permission?.granted == false) {
     return (
       <View style={styles.container}>
         <Text>Camera access required</Text>
-        <TouchableOpacity style={styles.button} onPress={() => requestCameraPermissionsAsync()}>
+        <TouchableOpacity style={styles.button} onPress={() => requestPermission()}>
           <Text style={styles.text}>Grant access</Text>
         </TouchableOpacity>
       </View>
@@ -112,9 +101,8 @@ export default function CameraScreen() {
 
   return (
     <View style={styles.container}>
-      <Camera 
-        style={styles.camera} 
-        type={type}
+      <CameraView 
+        style={styles.camera}
         onCameraReady={onCameraReady}
         ref={cameraRef}
       >
@@ -132,7 +120,7 @@ export default function CameraScreen() {
             <View style={styles.captureButtonInner} />
           </TouchableOpacity>
         </View>
-      </Camera>
+      </CameraView>
 
       {showForm && (
         <View style={styles.formContainer}>

@@ -29,7 +29,6 @@ export default function HomeScreen() {
   });
 
   useEffect(() => {
-    console.log('Font loading status:', { loaded, error });
     if (loaded || error) {
       SplashScreen.hideAsync();
     }

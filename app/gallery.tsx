@@ -36,9 +36,9 @@ export default function GalleryScreen() {
     }
   };
 
-  useFocusEffect(() => {
+  useEffect(() => {
     loadPhotos();
-  });
+  }, []);
 
   useEffect(() => {
     let filtered = [...photos];
